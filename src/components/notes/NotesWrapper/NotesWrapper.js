@@ -10,6 +10,7 @@ const NotesWrapper = React.forwardRef((props, ref) => {
 
   let notesToRender = current.folder === 'notes' ? notes : notes.filter((note) => note.folder === current.folder)
   notesToRender = notesToRender.filter((note) => note.content.includes(searchPhrase));
+  notesToRender = notesToRender.sort((a,b) => new Date(b.editDate) - new Date(a.editDate));
 
   return (
     <div ref={ref} className={styles.wrapper}>

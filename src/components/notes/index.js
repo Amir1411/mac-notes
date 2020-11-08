@@ -20,8 +20,15 @@ const Notes = () => {
     useEffect(() => {
         axios.get('https://my-json-server.typicode.com/amir1411/mac-notes/db')
         .then(function (response) {
-            setFolders(response.data.initialFolders)
-            setNotes(response.data.initialNotes)
+            const initialFolders = response.data.initialFolders.sort((a, b) => {
+                if(a.name.toLowerCase() < b.name.toLowerCase()) { return -1; }
+                if(a.name.toLowerCase() > b.name.toLowerCase()) { return 1; }
+                return 0;
+            });
+
+            const initialNotes = response.data.initialNotes;
+            setFolders(initialFolders)
+            setNotes(initialNotes)
         })
         .catch(function (error) {
             console.log(error);
