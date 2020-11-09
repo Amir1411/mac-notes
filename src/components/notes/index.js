@@ -57,6 +57,11 @@ const Notes = () => {
     const addFolder = folder => {
         const folderArr = [...folders];
         folderArr.push(folder);
+        folderArr.sort((a, b) => {
+            if(a.name.toLowerCase() < b.name.toLowerCase()) { return -1; }
+            if(a.name.toLowerCase() > b.name.toLowerCase()) { return 1; }
+            return 0;
+        });
         setFolders(folderArr);
     }
 
