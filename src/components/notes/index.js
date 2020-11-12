@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import styles from './Notes.module.scss';
 
 import FoldersWrapper from './FoldersWrapper/FoldersWrapper'
@@ -8,6 +7,7 @@ import Preview from './Preview/Preview'
 import TopBar from './TopBar/TopBar'
 
 import NotesContext from '../../common/context'
+import API from '../../common/Api';
 
 const Notes = () => {
 
@@ -18,22 +18,29 @@ const Notes = () => {
     const [current, setCurrent] = useState({folder: 'notes', note: null});
 
     useEffect(() => {
-        axios.get('https://my-json-server.typicode.com/amir1411/mac-notes/db')
-        .then(function (response) {
-            const initialFolders = response.data.initialFolders.sort((a, b) => {
-                if(a.name.toLowerCase() < b.name.toLowerCase()) { return -1; }
-                if(a.name.toLowerCase() > b.name.toLowerCase()) { return 1; }
-                return 0;
-            });
+        getData();
+    }, []);
 
-            const initialNotes = response.data.initialNotes;
-            setFolders(initialFolders)
-            setNotes(initialNotes)
-        })
-        .catch(function (error) {
-            console.log(error);
-        })
-    }, [])
+    const getData = () => {
+        const listData = JSON.parse(localStorage.getItem('data'));
+        if (listData === undefined || listData === null) {
+            API.getList().then((response) => {
+                const initialFolders = response.data.initialFolders.sort((a, b) => {
+                    if(a.name.toLowerCase() < b.name.toLowerCase()) { return -1; }
+                    if(a.name.toLowerCase() > b.name.toLowerCase()) { return 1; }
+                    return 0;
+                });
+
+                const initialNotes = response.data.initialNotes;
+                setFolders(initialFolders)
+                setNotes(initialNotes)
+                localStorage.setItem("data", JSON.stringify({initialFolders, initialNotes}));
+            });
+        } else {
+            setFolders(listData.initialFolders)
+            setNotes(listData.initialNotes)
+        }
+    }
 
     const notesWrapperRef = React.createRef();
 
@@ -41,7 +48,8 @@ const Notes = () => {
         resetSearchFilter();
         setNotes([...notes, note]);
         setCurrent({...current, note: note.id});
-        scrollNotesWrapperToBottom()
+        scrollNotesWrapperToBottom();
+        localStorage.setItem("data", JSON.stringify({initialFolders: folders, initialNotes: [...notes, note]}))
     }
 
     const selectFolder = (folder) => {
@@ -62,6 +70,7 @@ const Notes = () => {
             if(a.name.toLowerCase() > b.name.toLowerCase()) { return 1; }
             return 0;
         });
+        localStorage.setItem("data", JSON.stringify({initialFolders: folderArr, initialNotes: notes}))
         setFolders(folderArr);
     }
 
@@ -72,6 +81,7 @@ const Notes = () => {
             notes.splice(noteToDelete, 1);
             setNotes(notes);
             setCurrent({...current, note: null});
+            localStorage.setItem("data", JSON.stringify({initialFolders: folders, initialNotes: notes}))
         }
     }
 
@@ -91,7 +101,8 @@ const Notes = () => {
         notesCopy[notesToEdit].content = e.target.value
         notesCopy[notesToEdit].editDate = new Date()
 
-        setNotes([...notesCopy])
+        setNotes([...notesCopy]);
+        localStorage.setItem("data", JSON.stringify({initialFolders: folders, initialNotes: [...notesCopy]}))
     }
 
     const scrollNotesWrapperToBottom = () => {
